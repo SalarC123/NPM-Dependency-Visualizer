@@ -1,11 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import './index.css'; //tailwindcss
 import App from './App';
+import {GraphProvider} from './context/GraphContext'
 
 ReactDOM.render(
-  <React.StrictMode>
+  <GraphProvider>
     <App />
-  </React.StrictMode>,
+  </GraphProvider>,
   document.getElementById('root')
 );
