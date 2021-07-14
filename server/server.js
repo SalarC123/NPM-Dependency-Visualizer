@@ -1,19 +1,8 @@
 if (process.env.NODE_ENV != 'production') require('dotenv').config()
 const fetchPackage = require("package-json")
 const express = require("express")
-const fs = require("fs")
 const cors = require("cors")
 const bodyParser = require('body-parser')
-
-const buf = fs.readFileSync('./test.wasm');
-let wasm;
-(async () => {
-    // Explicitly compile and then instantiate the wasm module.
-    const module = await WebAssembly.compile(buf);
-    const instance = await WebAssembly.instantiate(module);
-  
-    wasm = instance.exports;
-})();
 
 const app = express();
 app.use(cors())
@@ -22,16 +11,19 @@ app.use(bodyParser.json(), urlencodedParser)
 
 let deps = {}
 
-async function fetchDependencies(packageName) {
+async function fetchDependencies(packageName, parent="") {
     const res = await fetchPackage(packageName, 'latest')
     const dependencies = await Object.keys(res.dependencies || {});
     deps[packageName] = dependencies
+    // parent ? deps[packageName].push(parent): null;
 
     for (dependency of dependencies) {
-        await fetchDependencies(dependency);
+        // if (!dependency || dependency === parent) continue
+        await fetchDependencies(dependency, packageName);
     }
 }
 
+let depsCopy;
 
 app.post("/dependencies", async (req, res) => {
     try {
@@ -39,12 +31,87 @@ app.post("/dependencies", async (req, res) => {
     } catch (err) {
         return res.json({errorMessage: err})
     }
-    console.log(wasm._Z4add1i(8))
+
     // create copy to return so that deps can be reset befofe next call to this route
-    const depsCopy = {...deps};
+    depsCopy = {...deps};
     deps = {};
     return res.json(depsCopy);
 })
 
+class Queue {
+
+    queue = []
+
+    constructor(initialArray) {
+        this.queue = initialArray;
+    }
+
+    enqueue(value) {
+        this.queue.push(value)
+    }
+
+    dequeue() {
+        const removedElement = this.queue.shift()
+        return removedElement;
+    }
+
+    empty() {
+        return this.queue.length === 0;
+    }
+};
+
+function findDistanceBetween(a, b, adjList) {
+
+    // DIJKSTRA'S ALGORITHM
+
+    const q = new Queue([]);
+    const visited = {}
+    const distances = {}
+    const prev = {}
+    
+    q.enqueue(a)
+    distances[a] = 0;
+    while (!q.empty()) {
+        let dependency = q.dequeue()
+        if (visited[dependency]) continue
+        visited[dependency] = 1;
+        for (item of adjList[dependency]) {
+            if (distances[item] === undefined) distances[item] = Number.MAX_VALUE
+            if (distances[dependency]+1 < distances[item]) {
+                distances[item] = distances[dependency]+1
+                prev[item] = dependency;
+            }
+            distances[item] = Math.min(distances[item], distances[dependency]+1)
+            q.enqueue(item)
+        }
+    }    
+
+    // Find each node on path with shortest distance
+    let parent = b;
+    const path = [];
+
+    for (let i = 0; i < distances[b]+1; i++) {
+        if (!parent) break;
+        path.push(parent);
+        parent = prev[parent];
+    }
+
+    return {distance: distances[b], path: path};
+}
+
+app.post("/distanceBetween", (req, res) => {
+    const {package1, package2} = req.body
+    if (Object.keys(depsCopy).includes(package1) && Object.keys(depsCopy).includes(package2)) {
+        const {distance, path} = findDistanceBetween(package1, package2, depsCopy)
+        distance === undefined
+            ? res.json({message: `${package2} is not a child of ${package1}`})
+            : res.json({
+                message: `${package1} and ${package2} are a distance of ${distance} package${distance == 1 ? "": "s"} away from each other`,
+                path: path,
+            })
+    } else {
+        res.json({message: "Package Not Found"})
+    }
+})
 
 app.listen(process.env.SERVER_PORT, () => console.log('Server listening on port ' + process.env.SERVER_PORT))
