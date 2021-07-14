@@ -1,0 +1,10 @@
+
+[build]
+  publish = "build/"
+  command = "CI= npm run build"
+
+[[redirects]]
+  from= "/api/*"
+  to = "https://npmvisualizer.herokuapp.com/:splat"
+  status = 200
+  force = true
