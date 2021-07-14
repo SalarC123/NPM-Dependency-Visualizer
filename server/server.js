@@ -9,6 +9,7 @@ app.use(cors())
 const urlencodedParser = bodyParser.urlencoded({ extended: false })
 app.use(bodyParser.json(), urlencodedParser)
 
+
 let deps = {}
 
 async function fetchDependencies(packageName, parent="") {
@@ -23,9 +24,10 @@ async function fetchDependencies(packageName, parent="") {
     }
 }
 
-let depsCopy;
+let depsCopy = {};
 
 app.post("/dependencies", async (req, res) => {
+    req.setTimeout(60000)
     try {
         await fetchDependencies(req.body.packageName);
     } catch (err) {
@@ -42,8 +44,8 @@ class Queue {
 
     queue = []
 
-    constructor(initialArray) {
-        this.queue = initialArray;
+    constructor(initialQueue=[]) {
+        this.queue = initialQueue;
     }
 
     enqueue(value) {
@@ -64,7 +66,7 @@ function findDistanceBetween(a, b, adjList) {
 
     // DIJKSTRA'S ALGORITHM
 
-    const q = new Queue([]);
+    const q = new Queue();
     const visited = {}
     const distances = {}
     const prev = {}
@@ -81,7 +83,6 @@ function findDistanceBetween(a, b, adjList) {
                 distances[item] = distances[dependency]+1
                 prev[item] = dependency;
             }
-            distances[item] = Math.min(distances[item], distances[dependency]+1)
             q.enqueue(item)
         }
     }    
@@ -101,17 +102,18 @@ function findDistanceBetween(a, b, adjList) {
 
 app.post("/distanceBetween", (req, res) => {
     const {package1, package2} = req.body
-    if (Object.keys(depsCopy).includes(package1) && Object.keys(depsCopy).includes(package2)) {
+    const currentNodes = Object.keys(depsCopy)
+    if (currentNodes.includes(package1) && currentNodes.includes(package2)) {
         const {distance, path} = findDistanceBetween(package1, package2, depsCopy)
         distance === undefined
-            ? res.json({message: `${package2} is not a child of ${package1}`})
+            ? res.json({errorMessage: `${package2} is not a child of ${package1}`})
             : res.json({
                 message: `${package1} and ${package2} are a distance of ${distance} package${distance == 1 ? "": "s"} away from each other`,
                 path: path,
             })
     } else {
-        res.json({message: "Package Not Found"})
+        res.json({errorMessage: "Package Not Found"})
     }
 })
 
-app.listen(process.env.SERVER_PORT, () => console.log('Server listening on port ' + process.env.SERVER_PORT))
+app.listen(process.env.PORT || 5000, () => console.log('Server listening on port ' + process.env.SERVER_PORT))
