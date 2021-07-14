@@ -4,7 +4,7 @@ import Graph from 'react-graph-vis';
 
 function GraphViz() {
 
-    const {dependencies, setDependencies, graphSettings, setGraphSettings} = useContext(GraphContext)
+    const {graphSettings} = useContext(GraphContext)
 
     const [options, setOptions] = useState({
         height: "500px",

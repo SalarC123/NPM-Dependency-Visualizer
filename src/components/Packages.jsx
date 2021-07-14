@@ -3,7 +3,7 @@ import {GraphContext} from '../context/GraphContext'
 
 function Packages() {
 
-    const {dependencies, setDependencies, graphSettings, setGraphSettings} = useContext(GraphContext)
+    const {dependencies} = useContext(GraphContext)
     
     return (
         <div className="mb-4 lg:w-1/2 sm:w-4/5 w-72">
@@ -21,7 +21,7 @@ function Packages() {
                             <hr className="m-3"/>
                         </>
                     ))
-                :   <div>Enter a package name...</div>
+                :   <div className="text-center">Enter a package name...</div>
             }
         </div>
     )
