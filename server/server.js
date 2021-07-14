@@ -9,6 +9,10 @@ app.use(cors())
 const urlencodedParser = bodyParser.urlencoded({ extended: false })
 app.use(bodyParser.json(), urlencodedParser)
 
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static('../build'))
+}
+
 
 let deps = {}
 
