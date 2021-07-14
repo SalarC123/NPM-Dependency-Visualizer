@@ -20,9 +20,10 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "start": "craco start",
-    "watch": "nodemon ./server/server.js",
+    "start": "node ./server/server.js",
+    "clientStart": "craco start",
     "build": "craco build",
+    "heroku-postbuild": "npm install && npm run build",
     "test": "craco test",
     "eject": "react-scripts eject"
   },
