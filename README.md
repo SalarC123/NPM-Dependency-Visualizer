@@ -11,5 +11,5 @@ Visualize NPM packages and their dependencies in a dynamic graph that can easily
 **•TailwindCSS**<br/>
 **•React Context API (global state management)**<br/>
 
-## Try It Out
+## [Check It Out](https://npmvisualizer.netlify.app)
 
