@@ -31,9 +31,10 @@ async function fetchDependencies(packageName, parent="") {
 let depsCopy = {};
 
 app.post("/dependencies", async (req, res) => {
+    const packageName = req.body.packageName.toLowerCase()
     req.setTimeout(60000)
     try {
-        await fetchDependencies(req.body.packageName);
+        await fetchDependencies(packageName);
     } catch (err) {
         return res.json({errorMessage: err})
     }
