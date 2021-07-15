@@ -39,7 +39,7 @@ function DistanceForm() {
         form[0].value = ""
         form[1].value = ""
 
-        const res = await fetch("/distanceBetween", {
+        const res = await fetch("/api/distanceBetween", {
             method: "POST",
             headers: {
                 "Content-type": "application/json",

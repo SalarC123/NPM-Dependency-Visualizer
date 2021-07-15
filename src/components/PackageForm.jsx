@@ -41,7 +41,7 @@ function PackageForm() {
         form[0].value = ""
 
         try {
-            const res = await fetch("/dependencies", {
+            const res = await fetch("/api/dependencies", {
                 method: 'POST',
                 headers: {
                     "Content-type": 'application/json',
